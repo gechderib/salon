@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: salon
+      POSTGRES_USER: salon_user
+      POSTGRES_PASSWORD: salon_password
+    ports:
+      - "5430:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    # The command is now handled by ENTRYPOINT and CMD in the Dockerfile
+    # to allow for automatic migrations on startup.
+    volumes:
+      - .:/code
+    ports:
+      - "8099:8000"
+    depends_on:
+      - db
+    environment:
+      - DJANGO_SETTINGS_MODULE=salon_backend.settings
+      - DATABASE_URL=postgres://salon_user:salon_password@db:5432/salon
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
+
+
