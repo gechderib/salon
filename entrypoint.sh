@@ -7,14 +7,18 @@ python << END
 import sys
 import socket
 import time
+import os
+from urllib.parse import urlparse
 
-arg1 = 'db'
-arg2 = 5432
+db_url = os.getenv('DATABASE_URL', 'postgres://salon_user:salon_password@localhost:5432/salon')
+url = urlparse(db_url)
+host = url.hostname
+port = url.port or 5432
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 while True:
     try:
-        s.connect((arg1, arg2))
+        s.connect((host, port))
         s.close()
         break
     except socket.error as ex:
