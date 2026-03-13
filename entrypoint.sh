@@ -37,5 +37,9 @@ python manage.py makemigrations --noinput
 echo "Applying migrations..."
 python manage.py migrate --noinput
 
+# Collect static files
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
+
 # Start the main command
 exec "$@"
