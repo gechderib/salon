@@ -18,6 +18,8 @@ class BusinessSerializer(serializers.ModelSerializer):
             "owner",
             "logo",
             "working_hours",
+            "open_time",
+            "close_time",
             "created_at",
         ]
         read_only_fields = ["id", "owner", "created_at"]

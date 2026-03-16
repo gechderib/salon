@@ -30,6 +30,14 @@ class IsCustomer(BasePermission):
         return user.is_customer
 
 
+class IsBusiness(BasePermission):
+    def has_permission(self, request, view) -> bool:
+        user: User = request.user
+        if not user or not user.is_authenticated:
+            return False
+        return user.is_business
+
+
 class ReadOnly(BasePermission):
     def has_permission(self, request, view) -> bool:
         return request.method in SAFE_METHODS

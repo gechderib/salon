@@ -41,6 +41,8 @@ class GoogleLoginView(APIView):
         if not email:
             return api_response(False, None, "Google token missing email", status=status.HTTP_400_BAD_REQUEST)
 
+        role_name = serializer.validated_data.get("role", Role.CUSTOMER)
+
         with transaction.atomic():
             user, created = User.objects.get_or_create(
                 email=email,
@@ -52,10 +54,13 @@ class GoogleLoginView(APIView):
                     "is_active": True,
                 },
             )
-            # Ensure customer role exists
-            customer_role, _ = Role.objects.get_or_create(name=Role.CUSTOMER)
-            if not user.roles.filter(pk=customer_role.pk).exists():
-                user.roles.add(customer_role)
+            # Assign role if needed
+            if not user.roles.exists():
+                role_obj, _ = Role.objects.get_or_create(name=role_name)
+                user.roles.add(role_obj)
+                if role_name == Role.BUSINESS:
+                    user.is_business_approved = True
+                    user.save()
 
             if payload.get("picture"):
                 # Upload to cloudinary and save
@@ -93,6 +98,8 @@ class TelegramLoginView(APIView):
         if not payload:
             return api_response(False, None, "Invalid Telegram auth data", status=status.HTTP_400_BAD_REQUEST)
 
+        role_name = serializer.validated_data.get("role", Role.CUSTOMER)
+
         telegram_id = str(payload.get("id"))
         with transaction.atomic():
             user, created = User.objects.get_or_create(
@@ -105,9 +112,13 @@ class TelegramLoginView(APIView):
                     "email": f"{telegram_id}@telegram.com", # Placeholder since TG doesn't provide email
                 },
             )
-            customer_role, _ = Role.objects.get_or_create(name=Role.CUSTOMER)
-            if not user.roles.filter(pk=customer_role.pk).exists():
-                user.roles.add(customer_role)
+            # Assign role if needed
+            if not user.roles.exists():
+                role_obj, _ = Role.objects.get_or_create(name=role_name)
+                user.roles.add(role_obj)
+                if role_name == Role.BUSINESS:
+                    user.is_business_approved = True
+                    user.save()
 
             if payload.get("photo_url"):
                 try:

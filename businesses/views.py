@@ -2,28 +2,55 @@ from datetime import datetime, timedelta, time
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from common.responses import api_response
-from users.permissions import ReadOnly
+from users.permissions import ReadOnly, IsBusiness, IsAuthenticated
 from .models import Business
 from .serializers import BusinessSerializer
 from services_app.models import Service
 from bookings.models import Booking
 
 class SalonListView(APIView):
-    permission_classes = [ReadOnly]
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsBusiness()]
+        return [ReadOnly()]
 
     def get(self, request):
         salons = Business.objects.all()
         serializer = BusinessSerializer(salons, many=True)
         return api_response(True, serializer.data, "Salons retrieved successfully")
 
+    def post(self, request):
+        if Business.objects.filter(owner=request.user).exists():
+            return api_response(False, None, "You already have a business profile.", status=400)
+        
+        serializer = BusinessSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(owner=request.user)
+            return api_response(True, serializer.data, "Business created successfully", status=201)
+        return api_response(False, serializer.errors, "Validation error", status=400)
+
 
 class SalonDetailView(APIView):
-    permission_classes = [ReadOnly]
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH"]:
+            return [IsBusiness()]
+        return [ReadOnly()]
 
     def get(self, request, pk: int):
         salon = get_object_or_404(Business, pk=pk)
         serializer = BusinessSerializer(salon)
         return api_response(True, serializer.data, "Salon retrieved successfully")
+
+    def put(self, request, pk: int):
+        salon = get_object_or_404(Business, pk=pk)
+        if salon.owner != request.user:
+            return api_response(False, None, "You do not own this business.", status=403)
+        
+        serializer = BusinessSerializer(salon, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return api_response(True, serializer.data, "Business updated successfully")
+        return api_response(False, serializer.errors, "Validation error", status=400)
 
 
 class AvailabilityView(APIView):
