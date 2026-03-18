@@ -9,10 +9,12 @@ from .views import (
     BookingConfirmView,
     BookingCompleteView,
     BookingRejectView,
+    BulkBookingCreateView,
 )
 
 urlpatterns = [
     path("", BookingCreateView.as_view(), name="booking-create"),
+    path("bulk/", BulkBookingCreateView.as_view(), name="booking-bulk-create"),
     path("my/", MyBookingsListView.as_view(), name="my-bookings"),
     path("<int:pk>/", BookingDetailView.as_view(), name="booking-detail"),
     path("<int:pk>/cancel/", BookingCancelView.as_view(), name="booking-cancel"),

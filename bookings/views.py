@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -30,6 +31,47 @@ class BookingCreateView(APIView):
             True,
             BookingSerializer(booking).data,
             "Booking created successfully",
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class BulkBookingCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.roles.filter(name="business").exists():
+            return api_response(
+                False,
+                None,
+                "Business owners cannot book services. Please use a customer account.",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        bookings_data = request.data.get("bookings", [])
+        if not isinstance(bookings_data, list) or not bookings_data:
+            return api_response(
+                False,
+                None,
+                "A list of bookings is required.",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = BookingSerializer(data=bookings_data, many=True)
+        if not serializer.is_valid():
+            return api_response(
+                False,
+                serializer.errors,
+                "Validation error",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            bookings = serializer.save(user=request.user)
+
+        return api_response(
+            True,
+            BookingSerializer(bookings, many=True).data,
+            f"{len(bookings)} bookings created successfully",
             status=status.HTTP_201_CREATED,
         )
 
