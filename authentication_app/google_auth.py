@@ -19,6 +19,7 @@ def verify_google_id_token(token: str) -> Optional[Dict]:
     """
     try:
         client_id = os.getenv("GOOGLE_CLIENT_ID")
+        print(f"DEBUG: Verifying token for client_id: {client_id}")
         # Verify the token
         id_info = id_token.verify_oauth2_token(token, requests.Request(), client_id)
         

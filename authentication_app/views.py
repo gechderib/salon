@@ -29,6 +29,7 @@ class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        print(f"DEBUG: Received Google Login request: {request.data}")
         serializer = GoogleLoginSerializer(data=request.data)
         if not serializer.is_valid():
             return api_response(False, serializer.errors, "Validation error", status=status.HTTP_400_BAD_REQUEST)
