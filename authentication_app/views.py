@@ -55,13 +55,14 @@ class GoogleLoginView(APIView):
                     "is_active": True,
                 },
             )
-            # Assign role if needed
-            if not user.roles.exists():
-                role_obj, _ = Role.objects.get_or_create(name=role_name)
+            # Assign role and ensure business role is approved
+            role_obj, _ = Role.objects.get_or_create(name=role_name)
+            if not user.roles.filter(id=role_obj.id).exists():
                 user.roles.add(role_obj)
-                if role_name == Role.BUSINESS:
-                    user.is_business_approved = True
-                    user.save()
+            
+            if role_name == Role.BUSINESS:
+                user.is_business_approved = True
+                user.save(update_fields=["is_business_approved"])
 
             if payload.get("picture"):
                 # Upload to cloudinary and save
@@ -113,13 +114,14 @@ class TelegramLoginView(APIView):
                     "email": f"{telegram_id}@telegram.com", # Placeholder since TG doesn't provide email
                 },
             )
-            # Assign role if needed
-            if not user.roles.exists():
-                role_obj, _ = Role.objects.get_or_create(name=role_name)
+            # Assign role and ensure business role is approved
+            role_obj, _ = Role.objects.get_or_create(name=role_name)
+            if not user.roles.filter(id=role_obj.id).exists():
                 user.roles.add(role_obj)
-                if role_name == Role.BUSINESS:
-                    user.is_business_approved = True
-                    user.save()
+            
+            if role_name == Role.BUSINESS:
+                user.is_business_approved = True
+                user.save(update_fields=["is_business_approved"])
 
             if payload.get("photo_url"):
                 try:
@@ -137,4 +139,3 @@ class TelegramLoginView(APIView):
         }
         message = "User created successfully" if created else "Login successful"
         return api_response(True, data, message)
-

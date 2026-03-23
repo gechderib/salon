@@ -19,7 +19,7 @@ class IsBusinessOwner(BasePermission):
         user: User = request.user
         if not user or not user.is_authenticated:
             return False
-        return user.is_business and user.is_business_approved
+        return user.is_business
 
 
 class IsCustomer(BasePermission):
