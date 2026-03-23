@@ -9,12 +9,14 @@ from services_app.models import Service
 class BookingSerializer(serializers.ModelSerializer):
     service_name = serializers.CharField(source="service.name", read_only=True)
     business_name = serializers.CharField(source="business.name", read_only=True)
+    customer_name = serializers.CharField(source="user.get_full_name", read_only=True)
 
     class Meta:
         model = Booking
         fields = [
             "id",
             "user",
+            "customer_name",
             "business",
             "service",
             "service_name",

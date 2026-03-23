@@ -37,8 +37,8 @@ class BecomeBusinessView(APIView):
 
         business_role, _ = Role.objects.get_or_create(name=Role.BUSINESS)
         request.user.roles.add(business_role)
-        # For MVP, mark as not yet approved; an admin can flip the flag in Django admin.
-        request.user.is_business_approved = False
+        # Auto-approve business owner role as per user request
+        request.user.is_business_approved = True
         request.user.save(update_fields=["is_business_approved"])
 
         return api_response(
